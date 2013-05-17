@@ -37,7 +37,7 @@ public class Arguments {
     private boolean help;
 
     @Parameter(names={ "--allow-override" }, description="allows existing file to be overwritten")
-    private boolean allowOverride = false;
+    private boolean allowOverride;
 
     @Parameter(names={ "-d", "--delete" }, description="delete the file from Swift")
     private String deleteFile;
