@@ -36,6 +36,12 @@ public class Arguments {
     @Parameter(names={ "--help"}, description="shows the parameters for this tool", help = true)
     private boolean help;
 
+    @Parameter(names={ "--allow-override" }, description="allows existing file to be overwritten")
+    private boolean allowOverride = false;
+
+    @Parameter(names={ "-d", "--delete" }, description="delete the file from Swift")
+    private String deleteFile;
+
     public String getUsername() {
         return username;
     }
@@ -74,5 +80,13 @@ public class Arguments {
 
     public String getPrefix() {
         return prefix;
+    }
+
+    public boolean isAllowOverride() {
+        return allowOverride;
+    }
+
+    public String getDeleteFile() {
+        return deleteFile;
     }
 }

@@ -5,3 +5,5 @@ file-cli.iml
 *.jar
 *.war
 *.ear
+filecli.sh
+dependency-reduced-pom.xml
