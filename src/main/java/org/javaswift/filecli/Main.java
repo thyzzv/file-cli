@@ -64,10 +64,31 @@ public class Main {
             LOG.info(object.getName() +" deleted from Swift");
         } else { // List files
             for (StoredObject object : container.list(arguments.getPrefix(), null, -1)) {
-                System.out.println(object.getName() + " ("+ object.getContentLength()+" bytes) -> "+object.getPublicURL());
+                System.out.println(object.getName() + " ("+ longToBytes(object.getContentLength())+") -> "+object.getPublicURL());
             }
         }
 
+    }
+
+    public static String longToBytes(long bytesUsed) {
+        String suffix = "B";
+        if (bytesUsed / 1024 > 0) {
+            bytesUsed /= 1024;
+            suffix = "KB";
+        }
+        if (bytesUsed / 1024 > 0) {
+            bytesUsed /= 1024;
+            suffix = "MB";
+        }
+        if (bytesUsed / 1024 > 0) {
+            bytesUsed /= 1024;
+            suffix = "GB";
+        }
+        if (bytesUsed / 1024 > 0) {
+            bytesUsed /= 1024;
+            suffix = "TB";
+        }
+        return bytesUsed + " " + suffix;
     }
 
 }
