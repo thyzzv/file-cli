@@ -2,6 +2,7 @@ package org.javaswift.filecli;
 
 import com.beust.jcommander.JCommander;
 import org.javaswift.joss.client.factory.AccountFactory;
+import org.javaswift.joss.client.factory.TempUrlHashPrefixSource;
 import org.javaswift.joss.model.Account;
 import org.javaswift.joss.model.Container;
 import org.javaswift.joss.model.StoredObject;
@@ -39,14 +40,15 @@ public class Main {
                 .setPassword(arguments.getPassword())
                 .setAuthUrl(arguments.getUrl())
                 .setPublicHost(arguments.getHost())
-//                .setTenantName(arguments.getTenantName())
-                .setTenant(arguments.getTenantName())
+                .setTenantId(arguments.getTenantId())
+                .setTenantName(arguments.getTenantName())
+                .setHashPassword(arguments.getHashPassword())
+                .setTempUrlHashPrefixSource(TempUrlHashPrefixSource.INTERNAL_URL_PATH)
                 .createAccount();
 
         Container container = account.getContainer(arguments.getContainer());
         if (!container.exists()) {
             container.create();
-            container.makePublic();
         }
 
         if (arguments.getFile() != null) { // Upload file
@@ -64,7 +66,8 @@ public class Main {
             LOG.info(object.getName() +" deleted from Swift");
         } else { // List files
             for (StoredObject object : container.list(arguments.getPrefix(), null, -1)) {
-                System.out.println(object.getName() + " ("+ longToBytes(object.getContentLength())+") -> "+object.getPublicURL());
+                System.out.println(object.getName() + " ("+ longToBytes(object.getContentLength())+") -> "+
+                        (arguments.isShowTempUrl() ? object.getTempGetUrl(arguments.getSeconds()) : object.getPublicURL()));
             }
         }
 

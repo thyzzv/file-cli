@@ -18,7 +18,7 @@ public class Arguments {
     @Parameter(names={ "-ti", "--tenant-id"}, description="the ID of the Swift tenant")
     private String tenantId;
 
-    @Parameter(names={ "-tn", "--tenant-name"}, description="the name of the Swift tenant", required=true)
+    @Parameter(names={ "-tn", "--tenant-name"}, description="the name of the Swift tenant")
     private String tenantName;
 
     @Parameter(names={ "-f", "--file"}, description="the path to the file to be uploaded")
@@ -41,6 +41,15 @@ public class Arguments {
 
     @Parameter(names={ "-d", "--delete" }, description="delete the file from Swift")
     private String deleteFile;
+
+    @Parameter(names={ "--hash-password" }, description="hash password to set on the account")
+    private String hashPassword;
+
+    @Parameter(names={ "--temp-url" }, description="instead of showing the public URL, show the temp URL")
+    private boolean showTempUrl;
+
+    @Parameter(names={ "--seconds" }, description="numbers of seconds a temp URL may be active")
+    private long seconds = 86400; // Default is one day
 
     public String getUsername() {
         return username;
@@ -88,5 +97,17 @@ public class Arguments {
 
     public String getDeleteFile() {
         return deleteFile;
+    }
+
+    public String getHashPassword() {
+        return hashPassword;
+    }
+
+    public boolean isShowTempUrl() {
+        return showTempUrl;
+    }
+
+    public long getSeconds() {
+        return seconds;
     }
 }
