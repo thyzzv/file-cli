@@ -8,6 +8,10 @@ import org.javaswift.joss.model.Container;
 import org.javaswift.joss.model.StoredObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import spark.Request;
+import spark.Response;
+import spark.Route;
+import spark.Spark;
 
 import java.io.File;
 
@@ -51,26 +55,52 @@ public class Main {
             container.create();
         }
 
-        if (arguments.getFile() != null) { // Upload file
-            File uploadFile = new File(arguments.getFile());
-            StoredObject object = container.getObject(uploadFile.getName());
-            if (object.exists() && !arguments.isAllowOverride()) {
-                LOG.error("File already exists. Upload cancelled");
-                return;
-            }
-            object.uploadObject(uploadFile);
-            System.out.println(object.getPublicURL());
+        if (arguments.isServer()) {
+            startServer(arguments, container);
+        } else if (arguments.getFile() != null) { // Upload file
+            uploadFile(arguments, container);
         } else if (arguments.getDeleteFile() != null) { // Delete file
-            StoredObject object = container.getObject(arguments.getDeleteFile());
-            object.delete();
-            LOG.info(object.getName() +" deleted from Swift");
+            deleteFile(arguments, container);
         } else { // List files
-            for (StoredObject object : container.list(arguments.getPrefix(), null, -1)) {
-                System.out.println(object.getName() + " ("+ longToBytes(object.getContentLength())+") -> "+
-                        (arguments.isShowTempUrl() ? object.getTempGetUrl(arguments.getSeconds()) : object.getPublicURL()));
-            }
+            listFiles(arguments, container);
         }
 
+    }
+
+    private static void startServer(final Arguments arguments, final Container container) {
+        Spark.setPort(arguments.getPort());
+        Spark.get(new Route("/:object") {
+            @Override
+            public Object handle(Request request, Response response) {
+                StoredObject object = container.getObject(request.params(":object"));
+                LOG.info("Drafting temp URL for "+object.getPath());
+                return object.getTempGetUrl(arguments.getSeconds());
+            }
+        });
+    }
+
+    private static void listFiles(Arguments arguments, Container container) {
+        for (StoredObject object : container.list(arguments.getPrefix(), null, -1)) {
+            System.out.println("* "+object.getName() + " ("+ longToBytes(object.getContentLength())+") -> "+
+                    (arguments.isShowTempUrl() ? object.getTempGetUrl(arguments.getSeconds()) : object.getPublicURL()));
+        }
+    }
+
+    private static void deleteFile(Arguments arguments, Container container) {
+        StoredObject object = container.getObject(arguments.getDeleteFile());
+        object.delete();
+        LOG.info(object.getName() +" deleted from Swift");
+    }
+
+    private static void uploadFile(Arguments arguments, Container container) {
+        File uploadFile = new File(arguments.getFile());
+        StoredObject object = container.getObject(uploadFile.getName());
+        if (object.exists() && !arguments.isAllowOverride()) {
+            LOG.error("File already exists. Upload cancelled");
+            return;
+        }
+        object.uploadObject(uploadFile);
+        System.out.println(object.getPublicURL());
     }
 
     public static String longToBytes(long bytesUsed) {

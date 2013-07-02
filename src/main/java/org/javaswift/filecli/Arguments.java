@@ -51,6 +51,12 @@ public class Arguments {
     @Parameter(names={ "--seconds" }, description="numbers of seconds a temp URL may be active")
     private long seconds = 86400; // Default is one day
 
+    @Parameter(names={ "--server" }, description="this parameter starts up as a webservice")
+    private boolean server;
+
+    @Parameter(names={ "--port" }, description="port of the server to start up under")
+    private int port=4567;
+
     public String getUsername() {
         return username;
     }
@@ -109,5 +115,13 @@ public class Arguments {
 
     public long getSeconds() {
         return seconds;
+    }
+
+    public boolean isServer() {
+        return server;
+    }
+
+    public int getPort() {
+        return port;
     }
 }
