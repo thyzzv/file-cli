@@ -69,10 +69,26 @@ public class Main {
 
     private static void startServer(final Arguments arguments, final Container container) {
         Spark.setPort(arguments.getPort());
+
+        Spark.get(new Route("/list") {
+            @Override
+            public Object handle(Request request, Response response) {
+                StringBuffer returnResult = new StringBuffer();
+                for (StoredObject object : container.list()) {
+                    returnResult.append(object.getName()+"\n");
+                }
+                return returnResult;
+            }
+        });
+
         Spark.get(new Route("/:object") {
             @Override
             public Object handle(Request request, Response response) {
                 StoredObject object = container.getObject(request.params(":object"));
+                if (!object.exists()) {
+                    response.status(404);
+                    return "";
+                }
                 LOG.info("Drafting temp URL for "+object.getPath());
                 return object.getTempGetUrl(arguments.getSeconds());
             }
