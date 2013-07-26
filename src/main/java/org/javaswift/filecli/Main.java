@@ -3,7 +3,6 @@ package org.javaswift.filecli;
 import com.beust.jcommander.JCommander;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
-import freemarker.template.TemplateException;
 import org.javaswift.joss.client.factory.AccountFactory;
 import org.javaswift.joss.client.factory.TempUrlHashPrefixSource;
 import org.javaswift.joss.model.Account;
@@ -16,9 +15,7 @@ import spark.Response;
 import spark.Route;
 import spark.Spark;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.*;
-import java.net.URLEncoder;
 import java.util.*;
 
 public class Main {
@@ -90,47 +87,67 @@ public class Main {
     private void startServer(final Arguments arguments, final Account account) {
         Spark.setPort(arguments.getPort());
 
+        // Get a listing for all Containers
         Spark.get(new Route("/") {
             @Override
             public Object handle(Request request, Response response) {
 //                String accept = request.raw().getHeader("Accept");
                 response.type("text/html");
-                response.status(200);
                 Map<String, Object> values = new TreeMap<>();
                 values.put("containers", convertAccountToList(account, arguments));
-                return callTemplate("containers.ftl", values);
+                return callTemplate("listing_html.ftl", values);
             }
         });
 
+        // Get a listing for a single Container
         Spark.get(new Route("/container/:container") {
             @Override
             public Object handle(Request request, Response response) {
                 response.type("text/html");
-                Container container = account.getContainer(request.params(":container"));
+                Container container = getContainer(account, request.params(":container"));
                 if (!container.exists()) {
                     return notFound(response, "Container", container.getName());
                 }
                 Map<String, Object> values = new TreeMap<>();
-                values.put("container", container.getName());
+                values.put("containerName", container.getName());
                 values.put("objects", convertContainerToList(container, arguments));
-                return callTemplate("objects.ftl", values);
-
+                return callTemplate("listing_html.ftl", values);
             }
         });
 
+        // Delete a single Object
+        Spark.delete(new Route("/object/:container/:object") {
+            @Override
+            public Object handle(Request request, Response response) {
+                StoredObject object = getObject(account, request.params(":container"), request.params(":object"));
+                object.delete();
+                LOG.info(object.getName() + " deleted from Swift");
+                return "";
+            }
+        });
+
+        // Fetch the temporary URL for an Object
         Spark.get(new Route("/object/:container/:object") {
             @Override
             public Object handle(Request request, Response response) {
                 response.type("text/html");
-                Container container = account.getContainer(request.params(":container"));
-                StoredObject object = container.getObject(request.params(":object"));
+                StoredObject object = getObject(account, request.params(":container"), request.params(":object"));
                 if (!object.exists()) {
                     return notFound(response, "Object", object.getName());
                 }
-                LOG.info("Drafting temp URL for "+object.getPath());
+                LOG.info("Drafting temp URL for " + object.getPath());
                 return object.getTempGetUrl(arguments.getSeconds());
             }
         });
+    }
+
+    private StoredObject getObject(Account account, String containerName, String objectName) {
+        Container container = getContainer(account, containerName);
+        return container.getObject(objectName);
+    }
+
+    private Container getContainer(Account account, String containerName) {
+        return account.getContainer(containerName);
     }
 
     private String notFound(Response response, String entityType, String entityName) {
