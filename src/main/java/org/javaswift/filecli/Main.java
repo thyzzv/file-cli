@@ -21,6 +21,8 @@ import java.util.*;
 public class Main {
 
     public static final Logger LOG = LoggerFactory.getLogger(Main.class);
+    public static final String LISTING_PLAIN_FTL = "listing_plain.ftl";
+    public static final String LISTING_HTML_FTL = "listing_html.ftl";
 
     public static void main(String[] args) {
 
@@ -91,11 +93,10 @@ public class Main {
         Spark.get(new Route("/") {
             @Override
             public Object handle(Request request, Response response) {
-//                String accept = request.raw().getHeader("Accept");
                 response.type("text/html");
                 Map<String, Object> values = new TreeMap<>();
                 values.put("containers", convertAccountToList(account, arguments));
-                return callTemplate("listing_html.ftl", values);
+                return callTemplate(determineTemplate(request.raw().getHeader("Accept")), values);
             }
         });
 
@@ -111,7 +112,7 @@ public class Main {
                 Map<String, Object> values = new TreeMap<>();
                 values.put("containerName", container.getName());
                 values.put("objects", convertContainerToList(container, arguments));
-                return callTemplate("listing_html.ftl", values);
+                return callTemplate(determineTemplate(request.raw().getHeader("Accept")), values);
             }
         });
 
@@ -139,6 +140,13 @@ public class Main {
                 return object.getTempGetUrl(arguments.getSeconds());
             }
         });
+    }
+
+    private String determineTemplate(String accept) {
+        return
+                accept != null && accept.equals("text/plain") ?
+                        LISTING_PLAIN_FTL :
+                        LISTING_HTML_FTL;
     }
 
     private StoredObject getObject(Account account, String containerName, String objectName) {
