@@ -108,8 +108,6 @@ public class Main {
             @Override
             public Object handle(Request request, Response response) {
                 response.type("text/html"); // @TODO - must be dependent on Accept header
-                response.header("Access-Control-Allow-Origin", account.getOriginalHost());
-                response.header("Origin", "http://localhost:4567");
                 Container container = getContainer(account, request.params(":container"));
                 if (!container.exists()) {
                     return notFound(response, "Container", container.getName());
