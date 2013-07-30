@@ -39,7 +39,7 @@
 <#if containerName??>
         <p><a href="/">&lt;&lt; Back</a></p>
         <h1>${containerName}</h1>
-        <form action="https://0fef7424e0f44779abf6e98d0bae9874.objectstore.eu/${containerName}" method="POST"
+        <form action="${upload_host}/${containerName}" method="POST"
               enctype="multipart/form-data">
             <input type="hidden" name="redirect" value="${redirect}" />
             <input type="hidden" name="max_file_size" value="${max_file_size}" />

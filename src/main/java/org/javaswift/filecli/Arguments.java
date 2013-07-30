@@ -57,6 +57,9 @@ public class Arguments {
     @Parameter(names={ "--port" }, description="port of the server to start up under")
     private int port=4567;
 
+    @Parameter(names={ "--redirect" }, description="URL to which a redirect will take place after an upload")
+    private String redirectUrl;
+
     public String getUsername() {
         return username;
     }
@@ -123,5 +126,9 @@ public class Arguments {
 
     public int getPort() {
         return port;
+    }
+
+    public String getRedirectUrl() {
+        return redirectUrl;
     }
 }

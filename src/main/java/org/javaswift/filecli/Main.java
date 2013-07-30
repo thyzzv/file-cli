@@ -115,14 +115,15 @@ public class Main {
                     return notFound(response, "Container", container.getName());
                 }
 
-                String redirect = "https://sis.42.nl/list";
+                String redirectUrl = arguments.getRedirectUrl() + "/container/" + container.getName();
                 long maxFileSize = 500000000;
                 long maxFileCount = 30;
-                FormPost formPost = container.getFormPost(redirect, maxFileSize, maxFileCount, 86400);
+                FormPost formPost = container.getFormPost(redirectUrl, maxFileSize, maxFileCount, 86400);
                 Map<String, Object> values = new TreeMap<>();
+                values.put("upload_host", account.getOriginalHost());
                 values.put("containerName", container.getName());
                 values.put("objects", convertContainerToList(container, arguments));
-                values.put("redirect", redirect);
+                values.put("redirect", redirectUrl);
                 values.put("max_file_size", String.valueOf(maxFileSize));
                 values.put("max_file_count", String.valueOf(maxFileCount));
                 values.put("expires", String.valueOf(formPost.expires));
