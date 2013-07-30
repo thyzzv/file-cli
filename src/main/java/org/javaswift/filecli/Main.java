@@ -7,6 +7,7 @@ import org.javaswift.joss.client.factory.AccountFactory;
 import org.javaswift.joss.client.factory.TempUrlHashPrefixSource;
 import org.javaswift.joss.model.Account;
 import org.javaswift.joss.model.Container;
+import org.javaswift.joss.model.FormPost;
 import org.javaswift.joss.model.StoredObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +33,8 @@ public class Main {
             return;
         }
         Account account = main.createAccount(arguments);
+
+        LOG.info("Original host: "+account.getOriginalHost());
 
         Container container = account.getContainer(arguments.getContainer());
         if (!container.exists()) {
@@ -93,7 +96,7 @@ public class Main {
         Spark.get(new Route("/") {
             @Override
             public Object handle(Request request, Response response) {
-                response.type("text/html");
+                response.type("text/html"); // @TODO - must be dependent on Accept header
                 Map<String, Object> values = new TreeMap<>();
                 values.put("containers", convertAccountToList(account, arguments));
                 return callTemplate(determineTemplate(request.raw().getHeader("Accept")), values);
@@ -104,14 +107,26 @@ public class Main {
         Spark.get(new Route("/container/:container") {
             @Override
             public Object handle(Request request, Response response) {
-                response.type("text/html");
+                response.type("text/html"); // @TODO - must be dependent on Accept header
+                response.header("Access-Control-Allow-Origin", account.getOriginalHost());
+                response.header("Origin", "http://localhost:4567");
                 Container container = getContainer(account, request.params(":container"));
                 if (!container.exists()) {
                     return notFound(response, "Container", container.getName());
                 }
+
+                String redirect = "https://sis.42.nl/list";
+                long maxFileSize = 500000000;
+                long maxFileCount = 30;
+                FormPost formPost = container.getFormPost(redirect, maxFileSize, maxFileCount, 86400);
                 Map<String, Object> values = new TreeMap<>();
                 values.put("containerName", container.getName());
                 values.put("objects", convertContainerToList(container, arguments));
+                values.put("redirect", redirect);
+                values.put("max_file_size", String.valueOf(maxFileSize));
+                values.put("max_file_count", String.valueOf(maxFileCount));
+                values.put("expires", String.valueOf(formPost.expires));
+                values.put("signature", formPost.signature);
                 return callTemplate(determineTemplate(request.raw().getHeader("Accept")), values);
             }
         });
@@ -127,19 +142,29 @@ public class Main {
             }
         });
 
-        // Fetch the temporary URL for an Object
+        // Fetch the temporary GET URL for an Object
         Spark.get(new Route("/object/:container/:object") {
             @Override
             public Object handle(Request request, Response response) {
-                response.type("text/html");
                 StoredObject object = getObject(account, request.params(":container"), request.params(":object"));
                 if (!object.exists()) {
                     return notFound(response, "Object", object.getName());
                 }
-                LOG.info("Drafting temp URL for " + object.getPath());
+                LOG.info("Drafting temp GET URL for " + object.getPath());
                 return object.getTempGetUrl(arguments.getSeconds());
             }
         });
+
+        // Fetch the temporary PUT URL for an Object
+        Spark.get(new Route("/upload/:container/:object") {
+            @Override
+            public Object handle(Request request, Response response) {
+                StoredObject object = getObject(account, request.params(":container"), request.params(":object"));
+                LOG.info("Drafting temp PUT URL for " + object.getPath());
+                return object.getTempPutUrl(arguments.getSeconds());
+            }
+        });
+
     }
 
     private String determineTemplate(String accept) {

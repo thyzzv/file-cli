@@ -9,8 +9,7 @@
         <title>SIS / Container / ${containerName}</title>
 </#if>
         <script>
-            function confirmDelete(containerName, objectName)
-            {
+            function confirmDelete(containerName, objectName) {
                 if (confirm("Are you sure you want to delete this Object?") == true) {
                     var xmlHttp = new XMLHttpRequest();
                     xmlHttp.open( "DELETE", "/object/"+containerName+"/"+objectName, false );
@@ -40,6 +39,16 @@
 <#if containerName??>
         <p><a href="/">&lt;&lt; Back</a></p>
         <h1>${containerName}</h1>
+        <form action="https://0fef7424e0f44779abf6e98d0bae9874.objectstore.eu/${containerName}" method="POST"
+              enctype="multipart/form-data">
+            <input type="hidden" name="redirect" value="${redirect}" />
+            <input type="hidden" name="max_file_size" value="${max_file_size}" />
+            <input type="hidden" name="max_file_count" value="${max_file_count}" />
+            <input type="hidden" name="expires" value="${expires}" />
+            <input type="hidden" name="signature" value="${signature}" />
+            <input type="file" name="file1" /><br />
+            <input type="submit" />
+        </form>
         <ul>
         <#list objects as object>
             <li><a href="${object.tempUrl}">${object.name}</a> (${object.size}) | <a href="" onclick="var event=arguments[0] || window.event; confirmDelete('${containerName}', '${object.name}')">delete</a></li>

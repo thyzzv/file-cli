@@ -43,7 +43,7 @@
 
     <properties>
         <jcommander.version>1.30</jcommander.version>
-        <joss.version>0.9.0</joss.version>
+        <joss.version>0.9.1</joss.version>
         <junit.version>4.10</junit.version>
         <spark-core.version>1.0</spark-core.version>
         <freemarker.version>2.3.19</freemarker.version>
