@@ -17,6 +17,7 @@ import spark.Route;
 import spark.Spark;
 
 import java.io.*;
+import java.net.URLDecoder;
 import java.util.*;
 
 public class Main {
@@ -89,6 +90,14 @@ public class Main {
                 .createAccount();
     }
 
+    private String decode(String encoded) {
+        try {
+            return URLDecoder.decode(encoded, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private void startServer(final Arguments arguments, final Account account) {
         Spark.setPort(arguments.getPort());
 
@@ -108,7 +117,7 @@ public class Main {
             @Override
             public Object handle(Request request, Response response) {
                 response.type("text/html"); // @TODO - must be dependent on Accept header
-                Container container = getContainer(account, request.params(":container"));
+                Container container = getContainer(request, account);
                 if (!container.exists()) {
                     return notFound(response, "Container", container.getName());
                 }
@@ -134,7 +143,7 @@ public class Main {
         Spark.delete(new Route("/object/:container/:object") {
             @Override
             public Object handle(Request request, Response response) {
-                StoredObject object = getObject(account, request.params(":container"), request.params(":object"));
+                StoredObject object = getStoredObject(request, account);
                 object.delete();
                 LOG.info(object.getName() + " deleted from Swift");
                 return "";
@@ -145,7 +154,7 @@ public class Main {
         Spark.get(new Route("/object/:container/:object") {
             @Override
             public Object handle(Request request, Response response) {
-                StoredObject object = getObject(account, request.params(":container"), request.params(":object"));
+                StoredObject object = getStoredObject(request, account);
                 if (!object.exists()) {
                     return notFound(response, "Object", object.getName());
                 }
@@ -158,12 +167,23 @@ public class Main {
         Spark.get(new Route("/upload/:container/:object") {
             @Override
             public Object handle(Request request, Response response) {
-                StoredObject object = getObject(account, request.params(":container"), request.params(":object"));
+                StoredObject object = getStoredObject(request, account);
                 LOG.info("Drafting temp PUT URL for " + object.getPath());
                 return object.getTempPutUrl(arguments.getSeconds());
             }
         });
 
+    }
+
+    private Container getContainer(Request request, Account account) {
+        String containerName = decode(request.params(":container"));
+        return getContainer(account, containerName);
+    }
+
+    private StoredObject getStoredObject(Request request, Account account) {
+        String containerName = decode(request.params(":container"));
+        String objectName = decode(request.params(":object"));
+        return getObject(account, containerName, objectName);
     }
 
     private String determineTemplate(String accept) {
