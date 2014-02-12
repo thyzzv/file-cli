@@ -18,6 +18,7 @@ import spark.Spark;
 
 import java.io.*;
 import java.net.URLDecoder;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class Main {
@@ -25,6 +26,8 @@ public class Main {
     public static final Logger LOG = LoggerFactory.getLogger(Main.class);
     public static final String LISTING_PLAIN_FTL = "listing_plain.ftl";
     public static final String LISTING_HTML_FTL = "listing_html.ftl";
+
+    private static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 
     public static void main(String[] args) {
 
@@ -227,6 +230,7 @@ public class Main {
             Map<String,Object> objectMap = new TreeMap<>();
             objectMap.put("name", object.getName());
             objectMap.put("size", longToBytes(object.getContentLength()));
+            objectMap.put("lastModified", formatter.format(object.getLastModifiedAsDate()));
             objectMap.put("tempUrl", encodeUrl(object.getTempGetUrl(arguments.getSeconds())));
             objects.add(objectMap);
         }

@@ -28,11 +28,28 @@
 <#if !containerName??>
     <#list containers as container>
         <h1><a href="container/${container.name}">${container.name}</a></h1>
-        <ul>
-    <#list container.objects as object>
-            <li><a href="${object.tempUrl}">${object.name}</a> (${object.size}) | <a href="" onclick="var event=arguments[0] || window.event; confirmDelete('${container.name}', '${object.name}')">delete</a></li>
-    </#list>
-        </ul>
+
+        <table>
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Size</th>
+                <th>Last modified</th>
+                <th>&nbsp;</th>
+            </tr>
+            </thead>
+            <tbody>
+                <#list container.objects as object>
+                <tr>
+                    <td><a href="${object.tempUrl}">${object.name}</a></td>
+                    <td align="right">${object.size}</td>
+                    <td>| ${object.lastModified}</td>
+                    <td>| <a href="" onclick="var event=arguments[0] || window.event; confirmDelete('${container.name}', '${object.name}')">delete</a></td>
+                </tr>
+                </#list>
+            </tbody>
+        </table>
+
     </#list>
 </#if>
 
@@ -49,11 +66,27 @@
             <input type="file" name="file1" /><br />
             <input type="submit" />
         </form>
-        <ul>
-        <#list objects as object>
-            <li><a href="${object.tempUrl}">${object.name}</a> (${object.size}) | <a href="" onclick="var event=arguments[0] || window.event; confirmDelete('${containerName}', '${object.name}')">delete</a></li>
-        </#list>
-        </ul>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Size</th>
+                    <th>Last modified</th>
+                    <th>&nbsp;</th>
+                </tr>
+            </thead>
+            <tbody>
+                <#list objects as object>
+                    <tr>
+                        <td><a href="${object.tempUrl}">${object.name}</a></td>
+                        <td align="right">${object.size}</td>
+                        <td>| ${object.lastModified}</td>
+                        <td>| <a href="" onclick="var event=arguments[0] || window.event; confirmDelete('${containerName}', '${object.name}')">delete</a></td>
+                    </tr>
+                </#list>
+            </tbody>
+        </table>
 </#if>
 
     </body>
