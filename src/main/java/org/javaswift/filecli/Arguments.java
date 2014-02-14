@@ -48,7 +48,7 @@ public class Arguments {
     @Parameter(names={ "--temp-url" }, description="instead of showing the public URL, show the temp URL")
     private boolean showTempUrl;
 
-    @Parameter(names={ "--seconds" }, description="numbers of seconds a temp URL may be active")
+    @Parameter(names={ "--seconds" }, description="numbers of seconds a temp URL may be active, also used for expiring password files")
     private long seconds = 86400; // Default is one day
 
     @Parameter(names={ "--server" }, description="this parameter starts up as a webservice")

@@ -7,3 +7,4 @@ file-cli.iml
 *.ear
 *.sh
 dependency-reduced-pom.xml
+tmp

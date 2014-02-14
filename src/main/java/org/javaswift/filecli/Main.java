@@ -20,6 +20,7 @@ import java.io.*;
 import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
 
 public class Main {
 
@@ -104,6 +105,9 @@ public class Main {
     private void startServer(final Arguments arguments, final Account account) {
         Spark.setPort(arguments.getPort());
 
+        final Queue<Container> checkContainers = new LinkedList<Container>();
+        final Queue<Container> recheckContainers = new LinkedList<Container>();
+
         // Get a listing for all Containers
         Spark.get(new Route("/") {
             @Override
@@ -132,6 +136,7 @@ public class Main {
                 Map<String, Object> values = new TreeMap<>();
                 values.put("upload_host", account.getOriginalHost());
                 values.put("containerName", container.getName());
+                values.put("expireFiles", container.getMetadata("expire"));
                 values.put("objects", convertContainerToList(container, arguments));
                 values.put("redirect", redirectUrl);
                 values.put("max_file_size", String.valueOf(maxFileSize));
@@ -171,11 +176,47 @@ public class Main {
             @Override
             public Object handle(Request request, Response response) {
                 StoredObject object = getStoredObject(request, account);
+                object.setDeleteAfter(arguments.getSeconds());
                 LOG.info("Drafting temp PUT URL for " + object.getPath());
                 return object.getTempPutUrl(arguments.getSeconds());
             }
         });
 
+        // Verify all uploaded objects in the container for expiration
+        Spark.post(new Route("/expires/:container") {
+            @Override
+            public Object handle(Request request, Response response) {
+                Container container = getContainer(request, account);
+                if ("yes".equals(container.getMetadata("expire"))) {
+                    checkContainers.add(container);
+                }
+                return "";
+            }
+        });
+
+        // This routine tags all objects in a folder with expiration settings to be deleted
+        while (true) {
+            try { Thread.sleep(1000); } catch (InterruptedException e) { throw new RuntimeException(e); }
+            checkContainer(recheckContainers, null, arguments);
+            checkContainer(checkContainers, recheckContainers, arguments);
+        }
+
+    }
+
+    private void checkContainer(Queue<Container> checkContainers, Queue<Container> recheckContainers, Arguments arguments) {
+        Container container = checkContainers.poll();
+        if (container == null) {
+            return;
+        }
+        for (StoredObject object : container.list()) {
+            if (!object.exists() || object.getDeleteAt() != null) {
+                continue;
+            }
+            object.setDeleteAfter(arguments.getSeconds());
+        }
+        if (recheckContainers != null) {
+            recheckContainers.add(container);
+        }
     }
 
     private Container getContainer(Request request, Account account) {
@@ -218,6 +259,7 @@ public class Main {
         for (Container container : account.list()) {
             Map<String,Object> containerMap = new TreeMap<>();
             containerMap.put("name", container.getName());
+            containerMap.put("expireFiles", container.getMetadata("expire"));
             containerMap.put("objects", convertContainerToList(container, arguments));
             containers.add(containerMap);
         }
@@ -226,12 +268,23 @@ public class Main {
 
     private List<Map<String, Object>> convertContainerToList(Container container, Arguments arguments) {
         List<Map<String,Object>> objects = new ArrayList<>();
+        boolean expireObjectsInContainer = "yes".equals(container.getMetadata("expire"));
         for (StoredObject object : container.list()) {
             Map<String,Object> objectMap = new TreeMap<>();
             objectMap.put("name", object.getName());
             objectMap.put("size", longToBytes(object.getContentLength()));
             objectMap.put("lastModified", formatter.format(object.getLastModifiedAsDate()));
             objectMap.put("tempUrl", encodeUrl(object.getTempGetUrl(arguments.getSeconds())));
+            if (expireObjectsInContainer) {
+                boolean exists = object.exists();
+                if (!exists) {
+                    objectMap.put("deleteStatus", "deleted");
+                } else {
+                    objectMap.put("deleteStatus", object.getDeleteAt() == null ?
+                            "" :
+                            "scheduled: "+formatter.format(object.getDeleteAtAsDate()));
+                }
+            }
             objects.add(objectMap);
         }
         return objects;
