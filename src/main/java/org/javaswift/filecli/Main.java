@@ -20,7 +20,6 @@ import java.io.*;
 import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
 
 public class Main {
 
@@ -141,8 +140,8 @@ public class Main {
                 values.put("redirect", redirectUrl);
                 values.put("max_file_size", String.valueOf(maxFileSize));
                 values.put("max_file_count", String.valueOf(maxFileCount));
-                values.put("expires", String.valueOf(formPost.expires));
-                values.put("signature", formPost.signature);
+                values.put("expires", String.valueOf(formPost.getExpires()));
+                values.put("signature", formPost.getSignature());
                 return callTemplate(determineTemplate(request.raw().getHeader("Accept")), values);
             }
         });
