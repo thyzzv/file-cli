@@ -3,7 +3,7 @@
 
     <groupId>org.javaswift</groupId>
     <artifactId>file-cli</artifactId>
-    <version>1.4.0</version>
+    <version>1.4.1</version>
     <packaging>jar</packaging>
     <name>JOSS File CLI</name>
     <description>Command Line Interface for uploading files to the ObjectStore</description>
@@ -43,7 +43,7 @@
 
     <properties>
         <jcommander.version>1.30</jcommander.version>
-        <joss.version>0.10.4-SNAPSHOT</joss.version>
+        <joss.version>0.10.4</joss.version>
         <junit.version>4.10</junit.version>
         <spark-core.version>1.0</spark-core.version>
         <freemarker.version>2.3.19</freemarker.version>
