@@ -4,6 +4,7 @@ import com.beust.jcommander.JCommander;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import org.javaswift.joss.client.factory.AccountFactory;
+import org.javaswift.joss.client.factory.AuthenticationMethod;
 import org.javaswift.joss.client.factory.TempUrlHashPrefixSource;
 import org.javaswift.joss.model.Account;
 import org.javaswift.joss.model.Container;
@@ -80,7 +81,7 @@ public class Main {
                 "tenant name "+arguments.getTenantName()+
                 ", tenant ID "+arguments.getTenantId()+
                 " and usr/pwd "+arguments.getUsername()+"/"+arguments.getPassword()+"@"+arguments.getUrl());
-
+        
         return new AccountFactory()
                 .setUsername(arguments.getUsername())
                 .setPassword(arguments.getPassword())
@@ -90,6 +91,7 @@ public class Main {
                 .setTenantName(arguments.getTenantName())
                 .setHashPassword(arguments.getHashPassword())
                 .setTempUrlHashPrefixSource(TempUrlHashPrefixSource.INTERNAL_URL_PATH)
+                .setAuthenticationMethod(AuthenticationMethod.valueOf(arguments.getMethod()))
                 .createAccount();
     }
 

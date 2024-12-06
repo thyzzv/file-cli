@@ -60,6 +60,9 @@ public class Arguments {
     @Parameter(names={ "--redirect" }, description="URL to which a redirect will take place after an upload")
     private String redirectUrl;
 
+    @Parameter(names={ "--method" }, description="which authencition method to use [BASIC, KEYSTONE, KEYSTONE_V3, TEMPAUTH, EXTERNAL], default = BASIC")
+    private String method;
+
     public String getUsername() {
         return username;
     }
@@ -130,5 +133,12 @@ public class Arguments {
 
     public String getRedirectUrl() {
         return redirectUrl;
+    }
+
+    public String getMethod() {
+        if (method == null) {
+            return "BASIC";
+        }
+        return method;
     }
 }
