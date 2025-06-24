@@ -92,6 +92,7 @@ public class Main {
                 .setHashPassword(arguments.getHashPassword())
                 .setTempUrlHashPrefixSource(TempUrlHashPrefixSource.INTERNAL_URL_PATH)
                 .setAuthenticationMethod(AuthenticationMethod.valueOf(arguments.getMethod()))
+                .setDomain(arguments.getDomain())
                 .createAccount();
     }
 

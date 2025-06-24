@@ -63,6 +63,11 @@ public class Arguments {
     @Parameter(names={ "--method" }, description="which authencition method to use [BASIC, KEYSTONE, KEYSTONE_V3, TEMPAUTH, EXTERNAL], default = BASIC")
     private String method;
 
+    @Parameter(names={ "--domain" }, description="which domain to authenticate against")
+    private String domain;
+
+
+
     public String getUsername() {
         return username;
     }
@@ -140,5 +145,9 @@ public class Arguments {
             return "BASIC";
         }
         return method;
+    }
+
+    public String getDomain() {
+        return domain;
     }
 }
